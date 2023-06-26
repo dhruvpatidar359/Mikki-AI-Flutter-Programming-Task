@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "471372471791",
+    "project_id": "openaiintern",
+    "storage_bucket": "openaiintern.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:471372471791:android:0e395f509b323670406a1a",
+        "android_client_info": {
+          "package_name": "com.example.openai"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "471372471791-3i9ute1pa2tklujr0or5rem41lar7ula.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.openai",
+            "certificate_hash": "9e0bd31bdd78e57b84a16d54bf445ed9fd9aef79"
+          }
+        },
+        {
+          "client_id": "471372471791-ves7hek1v9le1ou41sdg8qk6pau1b4e0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBeIWuoPs0DVQdgx0incDWfv1IsZpZgiQM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "471372471791-e0p3itlktitbochnf56itt0m0pepb9mf.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "471372471791-38oebm70kmbibuoun3rqcimkduq2h5jm.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.openai.RunnerTests"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
