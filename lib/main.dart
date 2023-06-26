@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:openai/features/chat/chatScreen.dart';
 import 'package:openai/features/showChats/showChats.dart';
 import 'package:openai/firebase_options.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'features/login/Login.dart';
 
@@ -12,6 +13,7 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  await dotenv.load(fileName: ".env");
   runApp(const MyApp());
 }
 
@@ -25,11 +27,11 @@ class MyApp extends StatelessWidget {
         routes: {
     '/chat': (context) => const ChatScreen(),
     '/showchat': (context) => ShowChats(querySnapshot: ModalRoute.of(context)!.settings.arguments as QuerySnapshot),
-    '/login' : (context) => LoginPage(),
+    '/login' : (context) => const LoginPage(),
 
     // Other routes...
   },
-      title: 'Flutter Demo',
+      title: 'OpenAi',
       theme: ThemeData(
         // This is the theme of your application.
         //

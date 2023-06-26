@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import 'package:openai/features/auth/AuthRepositry.dart';
 import 'package:openai/features/chat/chatScreen.dart';
 
 class LoginPage extends StatefulWidget {
@@ -12,8 +11,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+
 
   @override
   void initState() {
@@ -36,33 +34,6 @@ class _LoginPageState extends State<LoginPage> {
     Navigator.pushReplacementNamed(context, '/chat');
   }
 
-  Future<UserCredential?> _signInWithGoogle() async {
-    try {
-      // Trigger the Google Authentication flow
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-
-      if (googleUser != null) {
-        // Obtain the auth details from the Google SignIn object
-        final GoogleSignInAuthentication googleAuth =
-            await googleUser.authentication;
-
-        // Create a new credential using the obtained auth details
-        final OAuthCredential credential = GoogleAuthProvider.credential(
-          accessToken: googleAuth.accessToken,
-          idToken: googleAuth.idToken,
-        );
-
-        // Sign in to Firebase with the Google credential
-        final UserCredential userCredential =
-            await _auth.signInWithCredential(credential);
-        return userCredential;
-      }
-    } catch (error) {
-      print('Google Sign-In Error: $error');
-    }
-
-    return null;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,10 +44,10 @@ class _LoginPageState extends State<LoginPage> {
       body: Center(
         child: ElevatedButton(
           onPressed: () async {
-            // Sign in with Google
-            final UserCredential? userCredential = await _signInWithGoogle();
-
-            // Check if the login was successful
+        // sign in 
+            final UserCredential? userCredential =
+                await authRepositoryInstance.signInWithGoogle();
+// if user is not null , then go to chatscreen
             if (userCredential != null) {
               // Navigate to the home page
               Navigator.pushReplacement(
@@ -84,8 +55,7 @@ class _LoginPageState extends State<LoginPage> {
                 MaterialPageRoute(builder: (context) => ChatScreen()),
               );
             } else {
-              // Show an error message or handle the login failure
-              // For example, display a snackbar or show an alert dialog
+           // else show error
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('Login failed. Please try again.'),
@@ -100,35 +70,3 @@ class _LoginPageState extends State<LoginPage> {
   }
 }
 
-class HomePage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Home'),
-      ),
-      body: Center(
-        child: Text('Welcome to the Home Page!'),
-      ),
-    );
-  }
-}
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Login App',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: LoginPage(),
-    );
-  }
-}

@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:openai/features/auth/AuthRepositry.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import '../login/Login.dart';
 
@@ -20,7 +21,6 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _textController = TextEditingController();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   User? _user;
   late QuerySnapshot querySnapshot;
@@ -33,47 +33,21 @@ class _ChatScreenState extends State<ChatScreen> {
     _initializeUser();
   }
 
+// check if user is logged in or not
   Future<void> _initializeUser() async {
     _user = _auth.currentUser;
     if (_user == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => LoginPage()),
-        (Route<dynamic> route) => false,
-      );
-    });
-      // User not logged in
-      // Implement your login logic here
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginPage()),
+          (Route<dynamic> route) => false,
+        );
+      });
     }
   }
 
-  Future<void> _signOutGoogle() async {
-    try {
-      await _googleSignIn.signOut();
-      await _auth.signOut();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => LoginPage()),
-        (Route<dynamic> route) => false,
-      );
-    });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Logged out successfully.'),
-        ),
-      );
-    } catch (error) {
-      print('Google Sign-Out Error: $error');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Logout failed. Please try again.'),
-        ),
-      );
-    }
-  }
-
+// api call
   Future<void> _sendMessage(String message) async {
     if (message.isNotEmpty) {
       setState(() {
@@ -84,7 +58,7 @@ class _ChatScreenState extends State<ChatScreen> {
           headers: {
             'Content-Type': 'application/json',
             'Authorization':
-                'Bearer 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',
+                'Bearer ${dotenv.env['API_KEY']}',
           },
           body: jsonEncode({
             "model": "gpt-3.5-turbo",
@@ -110,6 +84,7 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+// save the response of the api
   Future<void> _saveResponse() async {
     final response = _response.trim();
     if (response.isNotEmpty && _user != null) {
@@ -131,22 +106,20 @@ class _ChatScreenState extends State<ChatScreen> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Response was empty or user not logged in.'),
+          content: const Text('Response was empty or user not logged in.'),
         ),
       );
     }
   }
-
-  Future<void> _showSavedResponses() async {
+// function to get the saved responses
+  Future<void> _getSavedResponses() async {
     if (_user != null) {
-      print(" iam working");
+      // print(" iam working");
       querySnapshot = await _firestore
           .collection('responses')
           .where('userId', isEqualTo: _user!.uid)
-          // .orderBy('timestamp', descending: false)
           .get();
     }
-    // print(querySnapshot.docs[0]);
   }
 
   @override
@@ -157,58 +130,30 @@ class _ChatScreenState extends State<ChatScreen> {
         actions: [
           IconButton(
               onPressed: () async {
-             await   _signOutGoogle();
+                await authRepositoryInstance.signOutGoogle(context);
               },
-              icon: Icon(Icons.logout)),
+              icon: const Icon(Icons.logout)),
           IconButton(
-              onPressed: () async{
-             await   _showSavedResponses();
+              onPressed: () async {
+                await _getSavedResponses();
                 Navigator.pushNamed(context, '/showchat',
                     arguments: querySnapshot);
-
-                // showDialog(
-                //     context: context,
-                //     builder: (BuildContext context) {
-                //       return AlertDialog(
-                //         title: Text('Saved Responses'),
-                //         content: SingleChildScrollView(
-                //           child: ListBody(
-                //             children: querySnapshot.docs.map((doc) {
-                //               final response = doc['response'];
-                //               final timestamp = doc['timestamp'];
-                //               return ListTile(
-                //                 title: Text(response),
-                //                 subtitle: Text(timestamp.toString()),
-                //               );
-                //             }).toList(),
-                //           ),
-                //         ),
-                //         actions: [
-                //           TextButton(
-                //             onPressed: () {
-                //               Navigator.pop(context);
-                //             },
-                //             child: Text('Close'),
-                //           ),
-                //         ],
-                //       );
-                //     });
               },
-              icon: Icon(Icons.history))
+              icon: const Icon(Icons.history))
         ],
       ),
       body: Column(
         children: [
           Expanded(
             child: ListView(
-              padding: EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16.0),
               reverse: true,
               children: [
                 Text(_response),
               ],
             ),
           ),
-          Divider(height: 1.0),
+          const Divider(height: 1.0),
           Container(
             decoration: BoxDecoration(color: Theme.of(context).cardColor),
             child: _buildTextComposer(),
@@ -218,26 +163,28 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  // It is the bottom , texteditor,send and save button widget
+
   Widget _buildTextComposer() {
     return IconTheme(
       data: IconThemeData(color: Theme.of(context).canvasColor),
       child: Container(
-        margin: EdgeInsets.symmetric(horizontal: 8.0),
+        margin: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(
           children: [
             Flexible(
               child: TextField(
                 controller: _textController,
                 onSubmitted: _sendMessage,
-                decoration: InputDecoration.collapsed(
+                decoration: const InputDecoration.collapsed(
                   hintText: 'Enter a message',
                 ),
               ),
             ),
             Container(
-              margin: EdgeInsets.symmetric(horizontal: 4.0),
+              margin: const EdgeInsets.symmetric(horizontal: 4.0),
               child: IconButton(
-                icon: Icon(
+                icon: const Icon(
                   Icons.send,
                   color: Colors.black,
                 ),
@@ -248,9 +195,9 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
             ),
             Container(
-              margin: EdgeInsets.symmetric(horizontal: 4.0),
+              margin: const EdgeInsets.symmetric(horizontal: 4.0),
               child: IconButton(
-                icon: Icon(
+                icon: const Icon(
                   Icons.save,
                   color: Colors.black,
                 ),
