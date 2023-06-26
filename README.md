@@ -1,8 +1,13 @@
 
 # Mikki AI Flutter Programming Task’
+([![video]Video Link]([https://katherineoelsner.com/](https://drive.google.com/file/d/1oT4Zw_LvJ5V3Vo76qScKLArxV1eCmTNZ/view?usp=sharing))
+)
 
 A Flutter app that uses openAi chat api , by which we can chat with the AI
 
+https://github.com/dhruvpatidar359/Mikki-AI-Flutter-Programming-Task/assets/103873587/a918ee6b-43a3-4165-a994-407fbe52d265
+
+rxV1eCmTNZ/view?usp=sharing
 
 ## Run
 
